@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Time Table</title>
+    <style>
+      /* Style for table */
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          font-family: Arial, sans-serif;
+          margin-bottom: 20px;
+        }
+
+            th,
+    td {
+      border: 1px solid black;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #d9d9d9;
+      font-weight: bold;
+      color: #444444;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+
+    /* Style for h1 */
+    h1 {
+      font-size: 32px;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 40px;
+      margin-bottom: 20px;
+      color: #2962ff;
+    }
+
+    /* Style for time range */
+    .time-range {
+      font-weight: bold;
+      color: #2962ff;
+    }
+
+    /* Style for faculty ratings */
+    .faculty-ratings {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      margin: 0 2px;
+    }
+
+    .faculty-ratings--1 {
+      background-color: #e6e6e6;
+    }
+
+    .faculty-ratings--2 {
+      background-color: #ffb3b3;
+    }
+
+    .faculty-ratings--3 {
+      background-color: #ffd1b3;
+    }
+
+    .faculty-ratings--4 {
+      background-color: #fff3b3;
+    }
+
+    .faculty-ratings--5 {
+      background-color: #c1f0c1;
+    }
+
+    .faculty-ratings--6 {
+      background-color: #b3e6ff;
+    }
+
+    .faculty-ratings--7 {
+      background-color: #b3b3ff;
+    }
+
+    .faculty-ratings--8 {
+      background-color: #d9b3ff;
+    }
+
+    .faculty-ratings--9 {
+      background-color: #ffccff;
+    }
+
+    .faculty-ratings--10 {
+      background-color: #ffd9e6;
+    }
+
+    /* Style for course availability percentage */
+    .course-availability-percentage {
+      font-weight: bold;
+      color: #2962ff;
+    }
+
+</style>
+
+  </head>
+  <body>
+    <h1>Time Table:</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Day</th>
+          <th>Time</th>
+          <th>Course</th>
+          <th>Faculty</th>
+        </tr>
+      </thead>
+      <tbody>
+        <script>
+          // list of courses and their faculty ratings
+          const courses = [
+          {
+            name: "Artificial Intelligence",
+            faculty: [
+              { name: "John", ratings: 8, availability: [true, false, true, true, false] },
+              { name: "Jane", ratings: 9, availability: [true, true, true, false, false] },
+              { name: "Bob", ratings: 7, availability: [true, true, false, true, false] },
+            ],
+          },
+          {
+            name: "Machine Learning",
+            faculty: [
+              { name: "Alice", ratings: 9, availability: [false, true, true, true, true] },
+              { name: "Charlie", ratings: 8, availability: [true, false, true, true, false] },
+              { name: "David", ratings: 7, availability: [true, true, false, true, false] },
+            ],
+          },
+          {
+            name: "Natural Language Processing",
+            faculty: [
+              { name: "Eve", ratings: 8, availability: [true, true, false, true, true] },
+              { name: "Frank", ratings: 7, availability: [false, true, true, true, false] },
+              { name: "Grace", ratings: 9, availability: [true, true, true, false, false] },
+            ],
+          },
+          // add more courses here
+        ];
+
+        
+       
+
+        const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+        const morningSlots = ["A1", "B1", "C1", "D1", "E1"];
+        const eveningSlots = ["A2", "B2", "C2", "D2", "E2"];
+
+        function generateTimeTable(courses, slots) {
+          const timeTable = {};
+          daysOfWeek.forEach((day) => {
+            timeTable[day] = [];
+            const slotsCopy = [...slots]; // make a copy of slots for the current day
+            for (let i = 0; i < slots.length; i++) {
+              const availableCourses = courses.filter((course) => {
+                const faculty = course.faculty.find((f) => f.availability[daysOfWeek.indexOf(day)]);
+                return faculty && !slotsCopy.includes(course.name); // check if course is available and hasn't been assigned to a slot yet
+              });
+              if (availableCourses.length === 0) {
+                break; // no available courses for the remaining slots
+              }
+              const selectedCourse = availableCourses[Math.floor(Math.random() * availableCourses.length)]; // select a random course
+              slotsCopy[i] = selectedCourse.name; // assign the course to the slot
+              timeTable[day].push({ slot: slots[i], course: selectedCourse.name, faculty: selectedCourse.faculty }); // add the course to the time table
+            }
+          });
+          return timeTable;
+        }
+
+        function tsp(distances) {
+          const n = distances.length;
+          const dp = Array(1 << n).fill().map(() => Array(n).fill(Infinity));
+
+          // base case: starting from any node to itself has distance 0
+          for (let i = 0; i < n; i++) {
+            dp[1 << i][i] = 0;
+          }
+
+          // iterate over all subsets of nodes
+          for (let mask = 0; mask < (1 << n); mask++) {
+            for (let i = 0; i < n; i++) {
+              if ((mask & (1 << i)) !== 0) { // if node i is in the current subset
+                for (let j = 0; j < n; j++) {
+                  if ((mask & (1 << j)) !== 0) { // if node j is also in the subset
+                    dp[mask][i] = Math.min(dp[mask][i], dp[mask ^ (1 << i)][j] + distances[j][i]); // update dp state
+                  }
+                }
+              }
+            }
+          }
+
+          // find the shortest Hamiltonian cycle
+          let minDist = Infinity;
+          for (let i =0; i < n; i++) {
+        minDist = Math.min(minDist, dp[(1 << n) - 1][i]); // update minDist with the minimum distance among all possible Hamiltonian cycles
+        }
+        return minDist;
+        }
+
+        // sample usage
+        const distances = [
+        [0, 10, 15, 20],
+        [10, 0, 35, 25],
+        [15, 35, 0, 30],
+        [20, 25, 30, 0],
+        ];
+
+        const shortestCycleLength = tsp(distances);
+        console.log("Shortest Hamiltonian cycle length:", shortestCycleLength);
+
+//         const timeTable = generateTimeTable(courses, morningSlots.concat(eveningSlots));
+//         console.log("Generated time table:", timeTable);
+
+        // prompt user to select a time slot option
+        const slotOption = prompt("Enter 1 for morning slot (starting at 8:00 AM) or 2 for evening slot (starting at 2:00 PM)");
+
+        let slots;
+        if (slotOption === "1") {
+          slots = morningSlots;
+        } else if (slotOption === "2") {
+          slots = eveningSlots;
+        } else {
+          alert("Invalid option selected. Defaulting to morning slot.");
+          slots = morningSlots;
+        }
+
+        // generate time table
+        const timeTable = generateTimeTable(courses, slots);
+
+
+let startHour = 0;
+          // print time table
+          for (const day in timeTable) {
+            // prompt user to select a time slot option
+            const slotOption = prompt("Enter 1 for morning slot (starting at 8:00 AM) or 2 for evening slot (starting at 2:00 PM)");
+
+            let slots;
+            if (slotOption === "1") {
+              slots = morningSlots;
+              startHour = 8; // start at 8:00 AM
+            } else if (slotOption === "2") {
+              slots = eveningSlots;
+              startHour = 2; // start at 2:00 PM
+            } else {
+              alert("Invalid option selected. Defaulting to morning slot.");
+              slots = morningSlots;
+            }
+            
+            let startMinute = 0;
+            timeTable[day].forEach((entry, index) => {
+              const endHour = startHour + Math.floor((startMinute + 50) / 60) % 12; // calculate end hour using modulo 12
+              const endMinute = (startMinute + 50) % 60; // calculate end minute
+              const timeRange = `${startHour}:${startMinute.toString().padStart(2, "0")} - ${endHour}:${endMinute.toString().padStart(2, "0")}${endHour < 12 ? " AM" : " PM"}`; // format time range string
+              const facultyNames = entry.faculty.map((f) => f.name).join(", "); // get names of faculty teaching the course
+              const facultyRatings = entry.faculty.map((f) => f.ratings); // get ratings of faculty teaching the course
+              const facultyAverageRating = facultyRatings.reduce((total, rating) => total + rating) / facultyRatings.length; // calculate average rating of faculty teaching the course
+              const courseAvailability = entry.faculty.map((f) => f.availability[daysOfWeek.indexOf(day)]); // get availability of faculty teaching the course
+              //const courseAvailabilityPercentage = (courseAvailability.filter((a) => a).length / courseAvailability.length) * 100; // calculate availability percentage of faculty teaching the course
+              const tableRow = `<tr> <td>${day}</td> <td>${timeRange}</td> <td>${entry.course}</td> <td>${facultyNames}</td> <td>${facultyAverageRating.toFixed(1)}</td>  </tr>`; // create table row HTML
+              document.querySelector("tbody").innerHTML += tableRow; // add table row to HTML
+              startMinute += 55; // increment start minute for next slot
+              if (startMinute >= 60) {
+                startHour += 1; // increment start hour if start minute is >= 60
+                startMinute -= 60;
+              }
+});
+}
+</script>
+</tbody>
+</table>
+
+  </body>
+</html>
